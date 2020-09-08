@@ -4,177 +4,99 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"os"
 
+	"github.com/iamtraining/go-github-issue-tool/editor"
 	"github.com/iamtraining/go-github-issue-tool/entity"
 )
 
-func makeRequest(method, url, token string, body io.Reader) ([]byte, error) {
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, err
-	}
+const (
+	repoUser = "https://api.github.com/repos/%s/%s/issues"
+	issueNum = repoUser + "/%s"
+)
 
-	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("cant send HTTP request" + err.Error())
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 300 {
-		return nil, fmt.Errorf("soemthing goes wrong")
-	}
-
-	parse, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("cant parse resp body")
-	}
-
-	return parse, nil
-}
-
-func CreateIssue() {
-	oauth := os.Getenv("OAUTH")
-
-	issue := entity.Issue{
-		Title: "testing1212",
-		Body:  "rawr xd",
-	}
+func sendRequest(oauth, method, url string, issue *entity.Issue) (*entity.Issue, error) {
 	marshal, err := json.Marshal(issue)
 	if err != nil {
-		panic("cannot marshal")
+		return nil, fmt.Errorf("failure while: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.github.com/repos/iamtraining/go-github-issue-tool/issues", bytes.NewBuffer(marshal))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(marshal))
 	req.Header.Add("Accept", "application/vnd.github.v3+json")
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", oauth))
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("creating request failure: %w", err)
 	}
 
 	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Errorf("failure while getting response %w", err)
+		return nil, fmt.Errorf("error while sending request %w", err)
 	}
 
 	defer resp.Body.Close()
 
-	m := map[string]interface{}{}
+	result := entity.Issue{}
 
-	if err = json.NewDecoder(resp.Body).Decode(&m); err != nil {
-		fmt.Errorf("decode failure %w", err)
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decode failure: %w", err)
 	}
-	fmt.Println(m)
+
+	return &result, nil
 }
 
-func OpenIssue() {
-	oauth := os.Getenv("OAUTH")
-
-	issue := entity.Issue{
-		State: "open",
-	}
-	marshal, err := json.Marshal(issue)
+func Create(oauth, user, repo string) {
+	issue, err := editor.CreateIssue()
 	if err != nil {
-		panic("cannot marshal")
+		fmt.Println(err)
 	}
-
-	req, err := http.NewRequest("PATCH", "https://api.github.com/repos/iamtraining/go-github-issue-tool/issues/1", bytes.NewBuffer(marshal))
-	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", oauth))
+	_, err = sendRequest(oauth, "POST", fmt.Sprintf(repoUser, user, repo), issue)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Errorf("failure while getting response %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	m := map[string]interface{}{}
-
-	if err = json.NewDecoder(resp.Body).Decode(&m); err != nil {
-		fmt.Errorf("decode failure %w", err)
-	}
-	fmt.Println(m)
 }
 
-func CloseIssue() {
-	oauth := os.Getenv("OAUTH")
-
-	issue := entity.Issue{
-		State: "closed",
-	}
-	marshal, err := json.Marshal(issue)
+func Read(oauth, user, repo, number string) {
+	_, err := sendRequest(oauth, "GET", fmt.Sprintf(issueNum, user, repo, number), nil)
 	if err != nil {
-		panic("cannot marshal")
+		fmt.Println(err)
 	}
-
-	req, err := http.NewRequest("PATCH", "https://api.github.com/repos/iamtraining/go-github-issue-tool/issues/1", bytes.NewBuffer(marshal))
-	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", oauth))
-	if err != nil {
-		panic(err)
-	}
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Errorf("failure while getting response %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	m := map[string]interface{}{}
-
-	if err = json.NewDecoder(resp.Body).Decode(&m); err != nil {
-		fmt.Errorf("decode failure %w", err)
-	}
-	fmt.Println(m)
 }
 
-func EditIssue() {
-	oauth := os.Getenv("OAUTH")
-
-	issue := entity.Issue{
-		Title: "editing title",
-		Body:  "editing body",
-	}
-	marshal, err := json.Marshal(issue)
+func Update(oauth, user, repo, number string) {
+	result, err := sendRequest(oauth, "GET", fmt.Sprintf(issueNum, user, repo, number), nil)
 	if err != nil {
-		panic("cannot marshal")
+		fmt.Println(err)
 	}
-
-	req, err := http.NewRequest("PATCH", "https://api.github.com/repos/iamtraining/go-github-issue-tool/issues/1", bytes.NewBuffer(marshal))
-	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", oauth))
+	issue, err := editor.EditIssue(result)
+	result, err = sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), issue)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+	}
+	fmt.Println(result.String())
+}
+
+func UpdateState(oauth, user, repo, number, state string) {
+	switch state {
+	case "closed", "open":
+		issue := entity.Issue{
+			State: state,
+		}
+		result, err := sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), &issue)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(result.String())
+	default:
+		return
 	}
 
-	client := http.Client{}
-	resp, err := client.Do(req)
+}
+
+func Delete(oauth, user, repo, number string) {
+	result, err := sendRequest(oauth, "DELETE", fmt.Sprintf(issueNum, user, repo, number), nil)
 	if err != nil {
-		fmt.Errorf("failure while getting response %w", err)
+		fmt.Println(err)
 	}
-
-	defer resp.Body.Close()
-
-	m := map[string]interface{}{}
-
-	if err = json.NewDecoder(resp.Body).Decode(&m); err != nil {
-		fmt.Errorf("decode failure %w", err)
-	}
-	fmt.Println(m)
+	fmt.Println(result.String())
 }

@@ -1,10 +1,8 @@
 package entity
 
-import "time"
-
-const (
-	repoUser = "https://api.github.com/repos/%s/%s/issues"
-	issue    = repoUser + "/%s"
+import (
+	"fmt"
+	"time"
 )
 
 type User struct {
@@ -21,4 +19,12 @@ type Issue struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	State     string    `json:"state,omitempty"`
+}
+
+func (i *Issue) String() string {
+	return fmt.Sprintf(
+		`Issue %d (%s)
+Title: %s State: %s
+Login: %s Time: %v
+Body: %s`, i.Number, i.HTMLURL, i.Title, i.State, i.User.Login, i.CreatedAt, i.Body)
 }

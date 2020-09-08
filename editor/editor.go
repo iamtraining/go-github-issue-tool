@@ -11,35 +11,44 @@ import (
 	"github.com/iamtraining/go-github-issue-tool/entity"
 )
 
-func OpenEditor() {
-	cmd := exec.Command("cmd", "tmp.txt")
+func OpenEditor(file string) error {
+	cmd := exec.Command("vim", file)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-	if err := cmd.Run(); err != nil {
-		fmt.Errorf("cannot run editor %w", err)
-	}
+	return cmd.Run()
 
 }
 
 func TempFile(curr string) (string, error) {
 	file, err := ioutil.TempFile(os.TempDir(), "*")
 	if err != nil {
-		fmt.Errorf("failure while creating temporary file")
+		return "", fmt.Errorf("failure while creating temporary file")
 	}
 
 	defer os.Remove(file.Name())
 
 	if curr != "" {
-		_, err := file.WriteString(curr)
+		_, err = file.WriteString(curr)
 	}
 
 	if err = file.Close(); err != nil {
-		fmt.Errorf("cant close tmp file")
+		return "", fmt.Errorf("cant close tmp file")
 	}
+
+	if err = OpenEditor(file.Name()); err != nil {
+		return "", err
+	}
+
+	body, err := Parse(file.Name())
+	if err != nil {
+		return "", fmt.Errorf("cant read temp file: %w", err)
+	}
+
+	return body, nil
 }
 
 func CreateIssue() (*entity.Issue, error) {
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Title: \n")
+	fmt.Printf("Title: ")
 	scanner.Scan()
 	title := scanner.Text()
 
@@ -83,10 +92,10 @@ func EditIssue(curr *entity.Issue) (*entity.Issue, error) {
 	return &issue, nil
 }
 
-func Parse(file string) {
+func Parse(file string) (string, error) {
 	tmp, err := os.Open(file)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	defer tmp.Close()
@@ -96,14 +105,13 @@ func Parse(file string) {
 	scanner := bufio.NewScanner(tmp)
 	for scanner.Scan() {
 		t := scanner.Text()
-		if t[0] != '#' {
-			lines = append(lines, t)
-		}
+
 		if len(t) == 0 {
 			lines = append(lines, "\n")
+		} else if t[0] != '#' {
+			lines = append(lines, t)
 		}
 	}
 
-	line := strings.Join(lines[:len(lines)-1], "\n")
-	fmt.Println(line)
+	return strings.Join(lines[:len(lines)-1], "/n"), nil
 }
