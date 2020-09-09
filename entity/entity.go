@@ -21,10 +21,9 @@ type Issue struct {
 	State     string    `json:"state,omitempty"`
 }
 
-func (i *Issue) String() string {
-	return fmt.Sprintf(
-		`Issue %d (%s)
+func (i *Issue) String() {
+	fmt.Println(fmt.Sprintf(`Issue %d (%s)
 Title: %s State: %s
 Login: %s Time: %v
-Body: %s`, i.Number, i.HTMLURL, i.Title, i.State, i.User.Login, i.CreatedAt, i.Body)
+Body: %s`, i.Number, i.HTMLURL, i.Title, i.State, i.User.Login, i.CreatedAt.Format(time.RFC822), i.Body))
 }

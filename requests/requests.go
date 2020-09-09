@@ -57,10 +57,11 @@ func Create(oauth, user, repo string) {
 }
 
 func Read(oauth, user, repo, number string) {
-	_, err := sendRequest(oauth, "GET", fmt.Sprintf(issueNum, user, repo, number), nil)
+	result, err := sendRequest(oauth, "GET", fmt.Sprintf(issueNum, user, repo, number), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
+	result.String()
 }
 
 func Update(oauth, user, repo, number string) {
@@ -73,7 +74,6 @@ func Update(oauth, user, repo, number string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(result.String())
 }
 
 func UpdateState(oauth, user, repo, number, state string) {
@@ -82,11 +82,10 @@ func UpdateState(oauth, user, repo, number, state string) {
 		issue := entity.Issue{
 			State: state,
 		}
-		result, err := sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), &issue)
+		_, err := sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), &issue)
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(result.String())
 	default:
 		return
 	}
@@ -94,9 +93,8 @@ func UpdateState(oauth, user, repo, number, state string) {
 }
 
 func Delete(oauth, user, repo, number string) {
-	result, err := sendRequest(oauth, "DELETE", fmt.Sprintf(issueNum, user, repo, number), nil)
+	_, err := sendRequest(oauth, "DELETE", fmt.Sprintf(issueNum, user, repo, number), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(result.String())
 }

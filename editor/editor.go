@@ -113,5 +113,5 @@ func Parse(file string) (string, error) {
 		}
 	}
 
-	return strings.Join(lines[:len(lines)-1], "/n"), nil
+	return strings.Join(lines, "/n"), nil
 }
