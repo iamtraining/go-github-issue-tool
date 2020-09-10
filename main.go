@@ -53,18 +53,21 @@ func main() {
 			os.Exit(1)
 		}
 		requests.Create(oauth, os.Args[2], os.Args[3])
+		fmt.Println("Done")
 	case "update":
 		if len(os.Args) < 5 {
 			updateusage()
 			os.Exit(1)
 		}
 		requests.Update(oauth, os.Args[2], os.Args[3], os.Args[4])
+		fmt.Println("Done")
 	case "updatestate":
 		if len(os.Args) < 6 {
 			updatestateusage()
 			os.Exit(1)
 		}
 		requests.UpdateState(oauth, os.Args[2], os.Args[3], os.Args[4], os.Args[5])
+		fmt.Println("Done")
 	case "read":
 		if len(os.Args) < 5 {
 			readusage()
@@ -75,5 +78,4 @@ func main() {
 		usage()
 		os.Exit(1)
 	}
-	//requests.Update(oauth, "iamtraining", "go-github-issue-tool", "1")
 }

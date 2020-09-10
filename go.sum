@@ -1,2 +1,4 @@
+github.com/iamtraining/go-github-issue-tool v0.0.0-20200910060647-4736729c9c55 h1:/dHF/HU8kv9kuxgTSs++8htU/V2Bx644TRmbexaCy+0=
+github.com/iamtraining/go-github-issue-tool v0.0.0-20200910060647-4736729c9c55/go.mod h1:8fpJ+5+muZ2Oqpe3Y0isOnePAlQv9v/PctNmCagULXo=
 github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
 github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=

@@ -34,15 +34,13 @@ func sendRequest(oauth, method, url string, issue *entity.Issue) (*entity.Issue,
 		return nil, fmt.Errorf("error while sending request %w", err)
 	}
 
-	result := entity.Issue{}
+	defer resp.Body.Close()
 
-	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&issue); err != nil {
 		return nil, fmt.Errorf("decode failure: %w", err)
 	}
 
-	defer resp.Body.Close()
-
-	return &result, nil
+	return issue, nil
 }
 
 func Create(oauth, user, repo string) {
@@ -50,10 +48,11 @@ func Create(oauth, user, repo string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = sendRequest(oauth, "POST", fmt.Sprintf(repoUser, user, repo), issue)
+	result, err := sendRequest(oauth, "POST", fmt.Sprintf(repoUser, user, repo), issue)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(result.String())
 }
 
 func Read(oauth, user, repo, number string) {
@@ -61,7 +60,7 @@ func Read(oauth, user, repo, number string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	result.String()
+	fmt.Println(result.String())
 }
 
 func Update(oauth, user, repo, number string) {
@@ -74,6 +73,7 @@ func Update(oauth, user, repo, number string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(result.String())
 }
 
 func UpdateState(oauth, user, repo, number, state string) {
@@ -82,10 +82,11 @@ func UpdateState(oauth, user, repo, number, state string) {
 		issue := entity.Issue{
 			State: state,
 		}
-		_, err := sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), &issue)
+		result, err := sendRequest(oauth, "PATCH", fmt.Sprintf(issueNum, user, repo, number), &issue)
 		if err != nil {
 			fmt.Println(err)
 		}
+		fmt.Println(result.String())
 	default:
 		return
 	}
