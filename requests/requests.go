@@ -34,13 +34,13 @@ func sendRequest(oauth, method, url string, issue *entity.Issue) (*entity.Issue,
 		return nil, fmt.Errorf("error while sending request %w", err)
 	}
 
-	defer resp.Body.Close()
-
 	result := entity.Issue{}
 
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("decode failure: %w", err)
 	}
+
+	defer resp.Body.Close()
 
 	return &result, nil
 }
@@ -88,13 +88,5 @@ func UpdateState(oauth, user, repo, number, state string) {
 		}
 	default:
 		return
-	}
-
-}
-
-func Delete(oauth, user, repo, number string) {
-	_, err := sendRequest(oauth, "DELETE", fmt.Sprintf(issueNum, user, repo, number), nil)
-	if err != nil {
-		fmt.Println(err)
 	}
 }

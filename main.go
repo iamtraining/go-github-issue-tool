@@ -15,13 +15,13 @@ func init() {
 }
 
 func usage() {
-	fmt.Println(`this tool is needed to interract with github issues
+	fmt.Println(`
+	this tool is needed to interract with github issues
 	available commands to use the tool:
-	[create] to create issue; [help create] for more details
-	[update] to update issue; [help update] for more details
-	[updatestate] to update the state; [help updatestate] for more details
-	[read] to read the selected issue; [help read] for more details
-	[delete] to delete the selected issue; [help delete] for more details
+	[create] to create issue
+	[update] to update issue
+	[updatestate] to update the state
+	[read] to read the selected issue
 	`)
 }
 
@@ -39,9 +39,6 @@ func updatestateusage() {
 func readusage() {
 	fmt.Println(`enter 3 arguments: <user> <repo> <number>`)
 }
-func deleteusage() {
-	fmt.Println(`enter 3 arguments: <user> <repo> <number>`)
-}
 
 func main() {
 	oauth := os.Getenv("OAUTH")
@@ -51,33 +48,32 @@ func main() {
 	}
 	switch os.Args[1] {
 	case "create":
-		requests.Create(oauth, os.Args[2], os.Args[3])
-	case "update":
-		requests.Update(oauth, os.Args[2], os.Args[3], os.Args[4])
-	case "updatestate":
-		requests.UpdateState(oauth, os.Args[2], os.Args[3], os.Args[4], os.Args[5])
-	case "read":
-		requests.Read(oauth, os.Args[2], os.Args[3], os.Args[4])
-	case "delete":
-		requests.Delete(oauth, os.Args[2], os.Args[3], os.Args[4])
-	case "help":
-		switch os.Args[2] {
-		case "create":
+		if len(os.Args) < 4 {
 			createusage()
 			os.Exit(1)
-		case "update":
+		}
+		requests.Create(oauth, os.Args[2], os.Args[3])
+	case "update":
+		if len(os.Args) < 5 {
 			updateusage()
 			os.Exit(1)
-		case "updatestate":
+		}
+		requests.Update(oauth, os.Args[2], os.Args[3], os.Args[4])
+	case "updatestate":
+		if len(os.Args) < 6 {
 			updatestateusage()
 			os.Exit(1)
-		case "read":
+		}
+		requests.UpdateState(oauth, os.Args[2], os.Args[3], os.Args[4], os.Args[5])
+	case "read":
+		if len(os.Args) < 5 {
 			readusage()
 			os.Exit(1)
-		case "delete":
-			deleteusage()
-			os.Exit(1)
 		}
+		requests.Read(oauth, os.Args[2], os.Args[3], os.Args[4])
+	case "help":
+		usage()
+		os.Exit(1)
 	}
 	//requests.Update(oauth, "iamtraining", "go-github-issue-tool", "1")
 }
